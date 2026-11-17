@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.battleshipsmobilegame.logic.GameLogic
 
 import com.example.battleshipsmobilegame.screens.GameParametersScreen
 import com.example.battleshipsmobilegame.screens.MainMenuScreen
@@ -76,32 +77,28 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // The Board for UI tests
-                        composable("board") {
-                            var dummyBoard by remember {
+                        composable("setup_turn") {
+                            val gameLogic = remember { GameLogic() }
+
+                            var playerBoard by remember {
                                 mutableStateOf(List(10) { List(10) { CellState.WATER } })
                             }
 
+                            // Checking if all ships are placed
+                            val isFleetReady = gameLogic.isFleetComplete(playerBoard)
+
                             SetupBattleShipsScreen(
                                 boardState = { row, col ->
-                                    dummyBoard[row - 1][col - 1]
+                                    playerBoard[row - 1][col - 1]
                                 },
                                 onCellClick = { row, col ->
-                                    // wizual tests
-                                    val r = row - 1
-                                    val c = col - 1
-                                    val newBoard = dummyBoard.map { it.toMutableList() }.toMutableList()
-
-                                    if (newBoard[r][c] == CellState.WATER) {
-                                        newBoard[r][c] = CellState.SHIP
-                                    } else {
-                                        newBoard[r][c] = CellState.WATER
-                                    }
-
-                                    dummyBoard = newBoard
+                                    // main action function
+                                    playerBoard = gameLogic.toggleShipPlacement(playerBoard, row, col)
                                 },
+                                isConfirmEnabled = isFleetReady,
                                 onReadyClick = {
-                                    navController.popBackStack("main_menu", inclusive = false)
+                                    // Next screen - for now it's main menu
+                                    navController.navigate("main_menu")
                                 }
                             )
                         }
@@ -109,17 +106,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun BoardPreview() {
-    BattleshipsMobileGameTheme {
-        SetupBattleShipsScreen(
-            boardState = { _, _ -> CellState.WATER },
-            onCellClick = { _, _ -> },
-            onReadyClick = {}
-        )
     }
 }
