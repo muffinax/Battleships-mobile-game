@@ -14,14 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-//import com.example.battleshipsmobilegame.screens.BattleshipBoard
+
 import com.example.battleshipsmobilegame.screens.GameParametersScreen
 import com.example.battleshipsmobilegame.screens.MainMenuScreen
 import com.example.battleshipsmobilegame.screens.SetupTurnScreen
+import com.example.battleshipsmobilegame.screens.SetupBattleShipsScreen
 import com.example.battleshipsmobilegame.ui.theme.BattleshipsMobileGameTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,7 +30,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BattleshipsMobileGameTheme {
-                // Navigation controller
                 val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -38,7 +37,6 @@ class MainActivity : ComponentActivity() {
                     var player1Name by remember { mutableStateOf("Player 1") }
                     var player2Name by remember { mutableStateOf("Player 2") }
 
-                    // Navigation map
                     NavHost(
                         navController = navController,
                         startDestination = "main_menu",
@@ -63,27 +61,50 @@ class MainActivity : ComponentActivity() {
                                 player2Name = player2Name,
                                 onPlayer2NameChange = { player2Name = it },
                                 onPlayClick = {
-                                    // 1. "Play" navigates to the setup screen
                                     navController.navigate("setup_turn")
                                 }
                             )
                         }
 
-                        // Setup
+                        // Setup Turn
                         composable("setup_turn") {
                             SetupTurnScreen(
-                                player = player1Name, // In the future, this will change dynamically between Player 1 and 2
+                                player = player1Name,
                                 onReadyClick = {
-                                    // 2. "Ready" navigates to the board
                                     navController.navigate("board")
                                 }
                             )
                         }
 
-                        // The Board
-//                        composable("board") {
-//                            BattleshipBoard()
-//                        }
+                        // The Board for UI tests
+                        composable("board") {
+                            var dummyBoard by remember {
+                                mutableStateOf(List(10) { List(10) { CellState.WATER } })
+                            }
+
+                            SetupBattleShipsScreen(
+                                boardState = { row, col ->
+                                    dummyBoard[row - 1][col - 1]
+                                },
+                                onCellClick = { row, col ->
+                                    // wizual tests
+                                    val r = row - 1
+                                    val c = col - 1
+                                    val newBoard = dummyBoard.map { it.toMutableList() }.toMutableList()
+
+                                    if (newBoard[r][c] == CellState.WATER) {
+                                        newBoard[r][c] = CellState.SHIP
+                                    } else {
+                                        newBoard[r][c] = CellState.WATER
+                                    }
+
+                                    dummyBoard = newBoard
+                                },
+                                onReadyClick = {
+                                    navController.popBackStack("main_menu", inclusive = false)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -95,6 +116,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BoardPreview() {
     BattleshipsMobileGameTheme {
-//        BattleshipBoard()
+        SetupBattleShipsScreen(
+            boardState = { _, _ -> CellState.WATER },
+            onCellClick = { _, _ -> },
+            onReadyClick = {}
+        )
     }
 }
