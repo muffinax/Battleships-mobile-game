@@ -17,6 +17,7 @@ import com.example.battleshipsmobilegame.components.BattleshipBoard
 
 @Composable
 fun SetupBattleShipsScreen(
+    player: String,
     boardState: (row: Int, col: Int) -> CellState,
     onCellClick: ((row: Int, col: Int) -> Unit)?,
     onReadyClick: () -> Unit,
@@ -28,16 +29,8 @@ fun SetupBattleShipsScreen(
         modifier = modifier.fillMaxSize()
     ) {
         Text(
-            text = "Setup your battleships!"
+            text = "$player setup your battleships!"
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "The remained ships:"
-        )
-
-        //Text (amount of ships that are left to be placed)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -47,6 +40,16 @@ fun SetupBattleShipsScreen(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+
+        Text(
+            text = "Required ships:"
+        )
+
+        //Text (amount of ships that are left to be placed)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
 
         Button(onClick = onReadyClick) {
             Text(text = "Confirm", fontSize = 24.sp)

@@ -83,6 +83,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             SetupBattleShipsScreen(
+                                player = player1Name,
                                 boardState = { row, col ->
                                     dummyBoard[row - 1][col - 1]
                                 },
@@ -109,17 +110,5 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun BoardPreview() {
-    BattleshipsMobileGameTheme {
-        SetupBattleShipsScreen(
-            boardState = { _, _ -> CellState.WATER },
-            onCellClick = { _, _ -> },
-            onReadyClick = {}
-        )
     }
 }
