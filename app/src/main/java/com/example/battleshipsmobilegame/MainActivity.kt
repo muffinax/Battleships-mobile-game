@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                 isConfirmEnabled = isFleetReady,
                                 onReadyClick = {
                                     navController.navigate("transition_combat") {
-                                        popUpTo("main_menu") { inclusive = true }
+                                        popUpTo("main_menu") { inclusive = false }
                                     }
                                 }
                             )

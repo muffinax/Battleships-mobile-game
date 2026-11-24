@@ -2,10 +2,14 @@ package com.example.battleshipsmobilegame.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,60 +37,64 @@ fun ActionScreen(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier.fillMaxSize()
+        verticalArrangement = Arrangement.Top,
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 8.dp)
     ) {
         Text(
             text = "$player's board"
         )
 
         BattleshipBoard(
-            modifier = Modifier.fillMaxWidth(0.6f), // 60% width
+            modifier = Modifier.fillMaxWidth(0.55f),
             boardState = ownBoardState,
             onCellClick = null,
             onCellLongClick = null
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = "Shoot your enemy Battleships"
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // Wynik strzału + przycisk End Turn widoczny od razu po pudle
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.height(52.dp)
+        ) {
+            if (shotResultText.isNotEmpty()) {
+                Text(
+                    text = shotResultText,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (shotResultText == "Miss!") Color.Gray else Color.Red
+                )
+            }
 
-        //Shooting result
-        Text(
-            text = shotResultText,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = if (shotResultText == "Miss!") Color.Gray else Color.Red
-        )
+            if (!canShoot) {
+                Button(onClick = onEndTurnClick) {
+                    Text(text = "End Turn", fontSize = 20.sp)
+                }
+            }
+        }
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // attacking board
+        // Plansza ataku
         BattleshipBoard(
             modifier = Modifier.fillMaxWidth(),
             boardState = targetBoardState,
-            // null when can't shoot
             onCellClick = if (canShoot) onTargetCellClick else null,
             onCellLongClick = if (canShoot) onTargetCellLongClick else null
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = "The remained ships:"
         )
-        Text (remainingEnemyShipsText)
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (!canShoot) {
-            Button(onClick = onEndTurnClick) {
-                Text(text = "End Turn", fontSize = 24.sp)
-            }
-        }
+        Text(text = remainingEnemyShipsText)
     }
 }
