@@ -3,6 +3,7 @@ package com.example.battleshipsmobilegame.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,8 @@ import com.example.battleshipsmobilegame.CellState
 fun BattleshipBoard(
     modifier: Modifier = Modifier,
     boardState: (row: Int, col: Int) -> CellState,
-    onCellClick: ((row: Int, col: Int) -> Unit)? = null
+    onCellClick: ((row: Int, col: Int) -> Unit)? = null,
+    onCellLongClick: ((row: Int, col: Int) -> Unit)? = null
 ) {
     val boardSize = 10
 
@@ -72,8 +74,11 @@ fun BattleshipBoard(
                             .background(cellState.getColor())
                             .then(
                                 // Add clickability only if callback is provided
-                                if (onCellClick != null) {
-                                    Modifier.clickable { onCellClick(row, col) }
+                                if (onCellClick != null || onCellLongClick != null) {
+                                    Modifier.combinedClickable(
+                                        onClick = { onCellClick?.invoke(row, col) },
+                                        onLongClick = { onCellLongClick?.invoke(row, col) }
+                                    )
                                 } else {
                                     Modifier
                                 }
