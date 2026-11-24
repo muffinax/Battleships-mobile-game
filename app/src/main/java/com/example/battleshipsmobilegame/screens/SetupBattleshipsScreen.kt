@@ -21,6 +21,7 @@ fun SetupBattleShipsScreen(
     boardState: (row: Int, col: Int) -> CellState,
     onCellClick: ((row: Int, col: Int) -> Unit)?,
     onReadyClick: () -> Unit,
+    isConfirmEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -28,9 +29,15 @@ fun SetupBattleShipsScreen(
         verticalArrangement = Arrangement.Center,
         modifier = modifier.fillMaxSize()
     ) {
-        Text(
-            text = "$player setup your battleships!"
-        )
+        Text(text = "Setup your battleships!")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "The remained ships:")
+
+        // adding information abut ships that are left to
+        Text(text = "Required fleet:")
+        Text(text = "1 x 4-cells, 2 x 3-cells, 3 x 2-cells, 4 x 1-cell")
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -41,17 +48,10 @@ fun SetupBattleShipsScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
-        Text(
-            text = "Required ships:"
-        )
-
-        //Text (amount of ships that are left to be placed)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-
-        Button(onClick = onReadyClick) {
+        Button(
+            onClick = onReadyClick,
+            enabled = isConfirmEnabled // Blocking button
+        ) {
             Text(text = "Confirm", fontSize = 24.sp)
         }
     }
