@@ -19,7 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.battleshipsmobilegame.logic.GameLogic
 import com.example.battleshipsmobilegame.logic.ShotType
-//import com.example.battleshipsmobilegame.screens.ActionScreen
+import com.example.battleshipsmobilegame.screens.ActionScreen
 import com.example.battleshipsmobilegame.screens.ChangeTurnScreen
 import com.example.battleshipsmobilegame.screens.GameParametersScreen
 import com.example.battleshipsmobilegame.screens.MainMenuScreen
@@ -59,6 +59,19 @@ class MainActivity : ComponentActivity() {
                     var shotResultText by remember { mutableStateOf("") }
                     var winnerName by remember { mutableStateOf("") }
 
+                    val resetGame = {
+                        p1OwnBoard = List(10) { List(10) { CellState.WATER } }
+                        p2OwnBoard = List(10) { List(10) { CellState.WATER } }
+                        p1TargetBoard = List(10) { List(10) { CellState.UNKNOWN } }
+                        p2TargetBoard = List(10) { List(10) { CellState.UNKNOWN } }
+                        isPlayer1Turn = true
+                        hitsInCurrentTurn = 0
+                        turnResultMessage = ""
+                        canShoot = true
+                        shotResultText = ""
+                        winnerName = ""
+                    }
+
                     NavHost(
                         navController = navController,
                         startDestination = "main_menu",
@@ -70,6 +83,7 @@ class MainActivity : ComponentActivity() {
                             MainMenuScreen(
                                 hasSavedGame = hasSavedGame,
                                 onNewGameClick = {
+                                    resetGame()
                                     navController.navigate("parameters")
                                 }
                             )
@@ -83,7 +97,9 @@ class MainActivity : ComponentActivity() {
                                 player2Name = player2Name,
                                 onPlayer2NameChange = { player2Name = it },
                                 onPlayClick = {
-                                    navController.navigate("transition_setup_p1")
+                                    navController.navigate("transition_setup_p1") {
+                                        popUpTo("parameters") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -93,7 +109,9 @@ class MainActivity : ComponentActivity() {
                             SetupTurnScreen(
                                 player = player1Name,
                                 onReadyClick = {
-                                    navController.navigate("setup_p1")
+                                    navController.navigate("setup_p1") {
+                                        popUpTo("transition_setup_p1") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -109,7 +127,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 isConfirmEnabled = isFleetReady,
                                 onReadyClick = {
-                                    navController.navigate("transition_setup_p2")
+                                    navController.navigate("transition_setup_p2") {
+                                        popUpTo("setup_p1") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -119,7 +139,9 @@ class MainActivity : ComponentActivity() {
                             SetupTurnScreen(
                                 player = player2Name,
                                 onReadyClick = {
-                                    navController.navigate("setup_p2")
+                                    navController.navigate("setup_p2") {
+                                        popUpTo("transition_setup_p2") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -128,13 +150,16 @@ class MainActivity : ComponentActivity() {
                             val isFleetReady = gameLogic.isFleetComplete(p2OwnBoard)
 
                             SetupBattleShipsScreen(
+                                player = player2Name,
                                 boardState = { row, col -> p2OwnBoard[row - 1][col - 1] },
                                 onCellClick = { row, col ->
                                     p2OwnBoard = gameLogic.toggleShipPlacement(p2OwnBoard, row, col)
                                 },
                                 isConfirmEnabled = isFleetReady,
                                 onReadyClick = {
-                                    navController.navigate("transition_combat")
+                                    navController.navigate("transition_combat") {
+                                        popUpTo("main_menu") { inclusive = true }
+                                    }
                                 }
                             )
                         }
@@ -146,87 +171,106 @@ class MainActivity : ComponentActivity() {
                                 player = nextPlayer,
                                 result = turnResultMessage,
                                 onReadyClick = {
-                                    navController.navigate("action_screen")
+                                    navController.navigate("action_screen") {
+                                        popUpTo("transition_combat") { inclusive = true }
+                                    }
                                 }
                             )
                         }
 
                         // Tura atakowania
-//                        composable("action_screen") {
-//                            val currentPlayerName = if (isPlayer1Turn) player1Name else player2Name
-//                            val ownBoard = if (isPlayer1Turn) p1OwnBoard else p2OwnBoard
-//                            val targetBoard = if (isPlayer1Turn) p1TargetBoard else p2TargetBoard
-//
-//                            ActionScreen(
-//                                player = currentPlayerName,
-//                                ownBoardState = { r, c -> ownBoard[r - 1][c - 1] },
-//                                targetBoardState = { r, c -> targetBoard[r - 1][c - 1] },
-//
-//                                onTargetCellLongClick = { r, c ->
-//                                    val newTargetBoard = gameLogic.togglePrediction(targetBoard, r, c)
-//                                    if (isPlayer1Turn) p1TargetBoard = newTargetBoard else p2TargetBoard = newTargetBoard
-//                                },
-//
-//                                onTargetCellClick = { r, c ->
-//                                    val attackerTargetBoard = if (isPlayer1Turn) p1TargetBoard else p2TargetBoard
-//                                    val defenderBoard = if (isPlayer1Turn) p2OwnBoard else p1OwnBoard
-//
-//                                    val result = gameLogic.attack(attackerTargetBoard, defenderBoard, r, c)
-//
-//                                    if (isPlayer1Turn) {
-//                                        p1TargetBoard = result.newTargetBoard
-//                                        p2OwnBoard = result.newDefenderBoard
-//                                    } else {
-//                                        p2TargetBoard = result.newTargetBoard
-//                                        p1OwnBoard = result.newDefenderBoard
-//                                    }
-//
-//                                    val currentDefenderBoard = if (isPlayer1Turn) p2OwnBoard else p1OwnBoard
-//                                    if (gameLogic.isGameOver(currentDefenderBoard)) {
-//                                        winnerName = currentPlayerName
-//                                        navController.navigate("winner")
-//                                    } else {
-//                                        when (result.shotType) {
-//                                            ShotType.HIT, ShotType.SUNK -> {
-//                                                shotResultText = if (result.shotType == ShotType.SUNK) "Sunk!" else "Hit!"
-//                                                hitsInCurrentTurn++
-//                                            }
-//                                            ShotType.MISS -> {
-//                                                shotResultText = "Miss!"
-//                                                canShoot = false
-//                                            }
-//                                            ShotType.IGNORED -> {}
-//                                        }
-//                                    }
-//                                },
-//
-//                                onEndTurnClick = {
-//                                    turnResultMessage = if (hitsInCurrentTurn > 0) {
-//                                        "Your opponent hit $hitsInCurrentTurn of your ship cells!"
-//                                    } else {
-//                                        "Your opponent missed completely!"
-//                                    }
-//
-//                                    hitsInCurrentTurn = 0
-//                                    canShoot = true
-//                                    shotResultText = ""
-//                                    isPlayer1Turn = !isPlayer1Turn
-//
-//                                    navController.navigate("transition_combat")
-//                                },
-//                                shotResultText = shotResultText,
-//                                canShoot = canShoot
-//                            )
-//                        }
+                        composable("action_screen") {
+                            val currentPlayerName = if (isPlayer1Turn) player1Name else player2Name
+                            val ownBoard = if (isPlayer1Turn) p1OwnBoard else p2OwnBoard
+                            val targetBoard = if (isPlayer1Turn) p1TargetBoard else p2TargetBoard
+                            val defenderBoard = if (isPlayer1Turn) p2OwnBoard else p1OwnBoard
+//                            val remainingEnemyShipsText = gameLogic.getRemainingEnemyShipsText(defenderBoard)
+
+                            ActionScreen(
+                                player = currentPlayerName,
+                                ownBoardState = { r, c -> ownBoard[r - 1][c - 1] },
+                                targetBoardState = { r, c -> targetBoard[r - 1][c - 1] },
+                                remainingEnemyShipsText = "Not implememnted",
+
+                                //Prediction
+                                onTargetCellLongClick = { r, c ->
+                                    val newTargetBoard = gameLogic.togglePrediction(targetBoard, r, c)
+                                    if (isPlayer1Turn) p1TargetBoard = newTargetBoard else p2TargetBoard = newTargetBoard
+                                },
+
+                                //Attack
+                                onTargetCellClick = { r, c ->
+                                    val attackerTargetBoard = if (isPlayer1Turn) p1TargetBoard else p2TargetBoard
+                                    val defenderBoard = if (isPlayer1Turn) p2OwnBoard else p1OwnBoard
+
+                                    val result = gameLogic.attack(attackerTargetBoard, defenderBoard, r, c)
+
+                                    if (isPlayer1Turn) {
+                                        p1TargetBoard = result.newTargetBoard
+                                        p2OwnBoard = result.newDefenderBoard
+                                    } else {
+                                        p2TargetBoard = result.newTargetBoard
+                                        p1OwnBoard = result.newDefenderBoard
+                                    }
+
+                                    val currentDefenderBoard = if (isPlayer1Turn) p2OwnBoard else p1OwnBoard
+
+                                    // if its last (winning) shot
+                                    if (gameLogic.isGameOver(currentDefenderBoard)) {
+                                        winnerName = currentPlayerName
+                                        navController.navigate("winner") {
+                                            popUpTo("action_screen") { inclusive = true }
+                                        }
+                                    } else {
+                                        // if hit an enemy
+                                        when (result.shotType) {
+                                            ShotType.HIT, ShotType.SUNK -> {
+                                                shotResultText = if (result.shotType == ShotType.SUNK) "Sunk!" else "Hit!"
+                                                hitsInCurrentTurn++
+                                            }
+                                            //stops the loop when missed a shot
+                                            ShotType.MISS -> {
+                                                shotResultText = "Miss!"
+                                                canShoot = false
+                                            }
+                                            ShotType.IGNORED -> {}
+                                        }
+                                    }
+                                },
+
+                                onEndTurnClick = {
+                                    turnResultMessage = if (hitsInCurrentTurn > 0) {
+                                        "Your opponent hit $hitsInCurrentTurn of your ship cells!"
+                                    } else {
+                                        "Your opponent missed completely!"
+                                    }
+
+                                    hitsInCurrentTurn = 0
+                                    canShoot = true
+                                    shotResultText = ""
+                                    isPlayer1Turn = !isPlayer1Turn
+
+                                    navController.navigate("transition_combat") {
+                                        popUpTo("action_screen") { inclusive = true }
+                                    }
+                                },
+                                shotResultText = shotResultText,
+                                canShoot = canShoot
+                            )
+                        }
 
                         // Ekran wygrania
                         composable("winner") {
                             WinnerScreen(
                                 player = winnerName,
                                 onPlayAgainClick = {
-                                    // Resetowanie gry można dodać w przyszłości
+                                    resetGame()
+                                    navController.navigate("parameters") {
+                                        popUpTo("main_menu") { inclusive = false }
+                                    }
                                 },
                                 onMenuClick = {
+                                    resetGame()
                                     navController.popBackStack("main_menu", inclusive = false)
                                 }
                             )
